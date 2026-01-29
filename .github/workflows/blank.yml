@@ -1,0 +1,40 @@
+name: VPS-LINUX-GIGABIT-PRO
+on: workflow_dispatch
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 1. Toi uu he thong mang (BBR & Buffers)
+        run: |
+          # Bat BBR de ep bang thong cao nhat cho truyen tai xa
+          sudo sysctl -w net.core.default_qdisc=fq
+          sudo sysctl -w net.ipv4.tcp_congestion_control=bbr
+          # Tang kich thuoc dem nhan/gui du lieu de khong bi ngheo
+          sudo sysctl -w net.core.rmem_max=16777216
+          sudo sysctl -w net.core.wmem_max=16777216
+
+      - name: 2. Cai dat Tailscale
+        run: |
+          curl -fsSL https://tailscale.com/install.sh | sh
+          sudo tailscale up --authkey=${{ secrets.TAILSCALE_AUTHKEY }}
+
+      - name: 3. Cai dat cong cu chuyen dung (Tools)
+        run: |
+          sudo apt update
+          # Cai dat SSH, screen (de chay ngam), aria2 (tai file sieu toc), htop (theo doi CPU/RAM)
+          sudo apt install -y openssh-server screen aria2 htop nload rclone
+          echo "runner:123456" | sudo chpasswd
+          sudo service ssh start
+
+      - name: 4. Thiet lap moi truong lam viec
+        run: |
+          # Tao thu muc tai ve rieng cho gon
+          mkdir -p ~/downloads
+          echo "VPS da san sang. Bang thong dang duoc mo khoa toi da!"
+
+      - name: 5. Giu ket noi (Song trong 6 tieng)
+        run: |
+          # Hien thi thong tin IP ra log de de theo doi
+          tailscale ip -4
+          sleep 21600
