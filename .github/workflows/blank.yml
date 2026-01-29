@@ -1,36 +1,39 @@
-name: VPS-LINUX-GIGABIT-FIXED
+name: VPS-GIGABIT-AUTO-INFO
 on: workflow_dispatch
 
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: 1. Kiem tra Secret (Tranh loi hien Link)
+      - name: 1. Toi uu mang (BBR)
         run: |
-          if [ -z "${{ secrets.TAILSCALE_AUTHKEY }}" ]; then
-            echo "LOI: Ban chua thiet lap TAILSCALE_AUTHKEY trong Settings/Secrets!"
-            exit 1
-          fi
+          sudo sysctl -w net.core.default_qdisc=fq
+          sudo sysctl -w net.ipv4.tcp_congestion_control=bbr
 
-      - name: 2. Cai dat va Tu dong Login
+      - name: 2. Ket noi Tailscale
         run: |
           curl -fsSL https://tailscale.com/install.sh | sh
-          # Ep buoc dung Key de khong bao gio hien Link bat xac thuc
           sudo tailscale up --authkey=${{ secrets.TAILSCALE_AUTHKEY }} --accept-dns=false
 
-      - name: 3. Thiet lap SSH (Thong tin dang nhap o day)
+      - name: 3. Thiet lap SSH & User
         run: |
-          sudo apt update && sudo apt install -y openssh-server
-          # Mat khau: vps123456
-          echo "runner:vps123456" | sudo chpasswd
+          sudo apt update && sudo apt install -y openssh-server jq
+          # Dat mat khau la: vps9999
+          echo "runner:vps9999" | sudo chpasswd
           sudo service ssh start
-          echo "------------------------------------------"
-          echo "DANG NHAP THANH CONG!"
-          echo "User: runner"
-          echo "Pass: vps123456"
-          echo "Port: 22"
-          echo "IP: Xem trong app Tailscale tren dien thoai"
-          echo "------------------------------------------"
 
-      - name: 4. Treo may 6 tieng
+      - name: 4. HIEN THI THONG TIN DANG NHAP
+        run: |
+          IP_TAILSCALE=$(tailscale ip -4)
+          echo "=========================================="
+          echo "    THONG TIN VPS LINUX CUA BAN         "
+          echo "=========================================="
+          echo "📍 IP: $IP_TAILSCALE"
+          echo "👤 USER: runner"
+          echo "🔑 PASS: vps9999"
+          echo "🚪 PORT: 22"
+          echo "=========================================="
+          echo "Dung IP nay de nhap vao Termius nhe!"
+
+      - name: 5. Treo may 6 tieng
         run: sleep 21600
