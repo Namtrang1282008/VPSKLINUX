@@ -1,4 +1,4 @@
-name: VPS-GIGABIT-AUTO-INFO
+name: VPS-NAM-AUTO-INFO
 on: workflow_dispatch
 
 jobs:
